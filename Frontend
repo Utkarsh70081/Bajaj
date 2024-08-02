@@ -1,0 +1,89 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+
+function App() {
+  const [inputJson, setInputJson] = useState('');
+  const [responseData, setResponseData] = useState(null);
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [error, setError] = useState('');
+
+  const handleInputChange = (event) => {
+    setInputJson(event.target.value);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const jsonData = JSON.parse(inputJson);
+      const response = await axios.post('https://The-backend-api.com/bfhl', jsonData);
+      setResponseData(response.data);
+      setSelectedOptions([]);
+      setError('');
+    } catch (error) {
+      setError('Invalid JSON format or API error.');
+    }
+  };
+
+  const handleOptionSelect = (option) => {
+    if (selectedOptions.includes(option)) {
+      setSelectedOptions(selectedOptions.filter((item) => item !== option));
+    } else {
+      setSelectedOptions([...selectedOptions, option]);
+    }
+  };
+
+  const renderResponse = () => {
+    if (!responseData) return null;
+    const filteredResponse = {};
+    selectedOptions.forEach((option) => {
+      if (option === 'Alphabets') {
+        filteredResponse['alphabets'] = responseData.alphabets;
+      } else if (option === 'Numbers') {
+        filteredResponse['numbers'] = responseData.numbers;
+      } else if (option === 'Highest Alphabet') {
+        filteredResponse['highest_alphabet'] = responseData.highest_alphabet;
+      }
+    });
+    return (
+      <div>
+        {Object.keys(filteredResponse).map((key) => (
+          <div key={key}>
+            <strong>{key}:</strong> {JSON.stringify(filteredResponse[key])}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <h1>Bajaj Finserv Health Dev Challenge</h1>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Enter JSON:
+          <input type="text" value={inputJson} onChange={handleInputChange} />
+        </label>
+        <button type="submit">Submit</button>
+      </form>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+      {responseData && (
+        <div>
+          <h2>Response</h2>
+          <div>
+            <label>
+              Select Data to Display:
+              <select onChange={(e) => handleOptionSelect(e.target.value)} multiple>
+                <option value="Alphabets">Alphabets</option>
+                <option value="Numbers">Numbers</option>
+                <option value="Highest Alphabet">Highest Alphabet</option>
+              </select>
+            </label>
+          </div>
+          {renderResponse()}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;
